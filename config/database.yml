@@ -1,17 +1,19 @@
 default: &default
-  adapter: postgresql
-  encoding: unicode
+  adapter: mysql2
+  encoding: utf8mb4
   pool: 5
-  host: localhost
+  host: <%= ENV.fetch("DB_HOST", "localhost") %>
+  username: <%= ENV["DB_USERNAME"] %>
+  password: <%= ENV["DB_PASSWORD"] %>
 
 development:
   <<: *default
-  database: ofxaddons
+  database: <%= ENV.fetch("DB_NAME", "ofxaddons") %>
 
 test:
   <<: *default
-  database: ofxaddons_test
+  database: <%= ENV.fetch("DB_NAME", "ofxaddons_test") %>
 
 production:
   <<: *default
-  database: ofxaddons
+  database: <%= ENV.fetch("DB_NAME", "ofxaddons") %>

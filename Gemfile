@@ -8,8 +8,11 @@ gem "lograge", "~>0.4"                                              # denser app
 gem 'omniauth-github',                                              # github login
     git: 'https://github.com/omniauth/omniauth-github',
     tag: 'v1.4.0'
-gem "pg", "~>0.21"                                                  # database driver
+gem "mysql2", "~>0.5"                                               # database driver (DreamHost shared has no Postgres)
 gem "redis-rails", "~>5.0"                                          # cache store
+gem "dotenv-rails", "~>2.1.1"                                       # loads environment from .env file in every env (DreamHost
+                                                                     # shared has no /etc/environment access for setting these
+                                                                     # system-wide the way production normally does)
 gem "simple_form", "~>3.3"                                          # form builder
 gem "slim", "~>3.0"                                                 # HTML template language
 gem "whenever", "~>0.9"                                             # cron job support
@@ -37,7 +40,6 @@ group :development, :test do
   gem "capistrano-passenger"
   gem "capistrano-rails"
   gem "capistrano-rbenv"
-  gem "dotenv-rails", "~>2.1.1"                                     # loads environment from .env file in development mode
   gem "immigrant", "~>0.3.5"                                        # detect foreign keys and generate migrations to create constraints
   gem "quiet_assets", "~>1.1.0"                                     # strip out all the asset serving noise from logs
   gem "spring", "~>2.0.0"                                           # rails preloader
