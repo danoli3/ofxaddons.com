@@ -16,6 +16,7 @@ require "json"
 class Importer
 
   CACHE_BASE_DIR = File.join(Rails.root, "tmp", "importer")
+  LOCK_FILE = File.join(Rails.root, "tmp", "importer.lock")
 
   attr_accessor :items
 
@@ -89,24 +90,40 @@ class Importer
     items
   end
 
+  # Guards against overlapping runs: the crawl can take longer than the
+  # scheduling interval (cron, GitHub Actions, etc), and a second run
+  # clearing the cache / restarting the search mid-crawl was why new
+  # addons stopped showing up for years. If another run already holds
+  # the lock, this one exits immediately instead of queuing up.
   def run(no_cache: true)
-    if no_cache
-      clear_cache
-      search
-      Rails.logger.debug "Fetched #{items.size} repos from Github"
-    else
-      Rails.logger.debug "Found #{items.size} cached repos"
+    lock_file = File.open(LOCK_FILE, File::CREAT | File::RDWR)
+    unless lock_file.flock(File::LOCK_EX | File::LOCK_NB)
+      Rails.logger.warn "Importer#run: another import is already in progress, skipping"
+      return false
     end
 
-    prune!
-    Rails.logger.debug "#{items.size} repos after pruning non-addons"
+    begin
+      if no_cache
+        clear_cache
+        search
+        Rails.logger.debug "Fetched #{items.size} repos from Github"
+      else
+        Rails.logger.debug "Found #{items.size} cached repos"
+      end
 
-    items.each do |i|
-      gd = GithubData.new(repo_json: i)
-      update(gd)
+      prune!
+      Rails.logger.debug "#{items.size} repos after pruning non-addons"
+
+      items.each do |i|
+        gd = GithubData.new(repo_json: i)
+        update(gd)
+      end
+
+      true
+    ensure
+      lock_file.flock(File::LOCK_UN)
+      lock_file.close
     end
-
-    true
   end
 
   def search

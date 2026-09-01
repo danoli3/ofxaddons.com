@@ -28,9 +28,13 @@ every 3.months do
   rake "tmp:clear"
 end
 
-every 1.hour do
-  rbenv_runner "Importer.new.run(no_cache: true)"
-end
+# The crawl used to run here every hour, but with no locking that meant a
+# crawl taking longer than an hour (which unauthenticated Github API rate
+# limits guaranteed) got restarted mid-run by the next tick, clearing its
+# cache and re-searching from scratch every time. See lib/importer.rb for
+# the new file-lock guard. The crawl itself has moved to a scheduled
+# Github Actions workflow (.github/workflows/crawl.yml), which SSHes in
+# and runs it, so it isn't duplicated here.
 
 # every 4.days do
 #   runner "AnotherModel.prune_old_records"

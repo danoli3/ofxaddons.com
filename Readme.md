@@ -52,11 +52,11 @@ The central place to discover openFrameworks addons.
 ### Crawling
 
 #### API Keys
-If you want to avoid rate limiting (hint: you _do_) with the Github API then you need to [register a new application](https://github.com/settings/applications/new) and get some API keys.
+If you want to avoid rate limiting (hint: you _do_ — unauthenticated crawls are capped at 10 search requests/min and 60 API requests/hr, which isn't enough to complete a crawl) you need a Github [personal access token](https://github.com/settings/tokens) with no scopes (public read access is enough).
 
-API keys are strictly optional. If you don't use them, the app will run fine, but you'll be subject to rate limiting. After you make a few thousand requests Github will start rejecting your requests.
+`GITHUB_TOKEN` is strictly optional. If you don't set it, the app will run fine, but you'll be subject to unauthenticated rate limiting, and the crawler will not be able to complete a full pass.
 
-Once you've got your API keys, there are several ways to set up your environment, but here's one way using Foreman.
+Once you've got your token, there are several ways to set up your environment, but here's one way using Foreman.
 
 1. If needed, create a `.env` file in the repository root
 
@@ -64,12 +64,13 @@ Once you've got your API keys, there are several ways to set up your environment
 
    WARNING: Never check in the `.env` file. It will screw up the production environment.
 
-1. Add your API key and secret to the file:
+1. Add your token to the file:
 
-        GITHUB_CLIENT_ID=xxxxxxxxxxxxxxxxxxxx
-        GITHUB_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 1. Restart Foreman
+
+Separately, `GITHUB_CLIENT_ID`/`GITHUB_CLIENT_SECRET` are used only for admin login via Github OAuth (`/auth/github`) — register an [OAuth App](https://github.com/settings/applications/new) for those, not a personal access token. They are unrelated to crawler rate limiting; Github retired authenticating API requests via `client_id`/`client_secret` query params in 2020.
 
 Further reading on [using foreman for config vars](https://devcenter.heroku.com/articles/config-vars#using-foreman).
 

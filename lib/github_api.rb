@@ -5,34 +5,31 @@ class GithubApi
   include HTTParty
   base_uri 'https://api.github.com'
 
-  if ENV['GITHUB_CLIENT_ID']
-    CREDENTIALS = {
-      "client_id"     => ENV['GITHUB_CLIENT_ID'],
-      "client_secret" => ENV['GITHUB_CLIENT_SECRET']
-    }
-  else
-    CREDENTIALS = {}
-  end
-
+  # GitHub retired authenticating API requests via client_id/client_secret
+  # query params (https://github.blog/2020-07-30-scaling-github-api-requests/).
+  # We now authenticate with a personal access token (or GitHub App
+  # installation token) sent as an Authorization header, which raises the
+  # rate limit from 10/min (search) & 60/hr (core) to 30/min & 5000/hr.
   HTTP_OPTIONS = {
     :headers => {
-      'Accept'     => 'application/vnd.github.v3+json',
-      'User-Agent' => 'ofxaddons-spider'
-    }
+      'Accept'        => 'application/vnd.github.v3+json',
+      'User-Agent'    => 'ofxaddons-spider',
+      'Authorization' => ENV['GITHUB_TOKEN'] ? "token #{ ENV['GITHUB_TOKEN'] }" : nil
+    }.compact
   }
 
   class << self
 
     def repository(full_name:, options: {})
       base  = "/repos/#{ full_name }"
-      url   = add_querystring_params(base, options.merge(CREDENTIALS))
+      url   = add_querystring_params(base, options)
       Rails.logger.debug "Github::repository: ".yellow + "fetching #{url} ..."
       get(url, HTTP_OPTIONS)
     end
 
     def repository_commits(full_name:, options: {})
       base  = "/repos/#{ full_name }/commits"
-      url   = add_querystring_params(base, options.merge(CREDENTIALS))
+      url   = add_querystring_params(base, options)
       Rails.logger.debug "Github::repository_commits: ".yellow + "fetching #{url} ..."
       get(url, HTTP_OPTIONS)
     end
@@ -40,7 +37,7 @@ class GithubApi
     def repository_contents(full_name:, options: {})
       path  = options.delete(:path)
       base  = "/repos/#{ full_name }/contents#{path}"
-      url   = add_querystring_params(base, options.merge(CREDENTIALS))
+      url   = add_querystring_params(base, options)
       Rails.logger.debug "Github::repository_contents: ".yellow + "fetching #{url} ..."
       get(url, HTTP_OPTIONS)
     end
@@ -106,7 +103,6 @@ class GithubApi
         q: "#{ term }+in:name",
         per_page: 100
       }
-      opts.merge!(CREDENTIALS)
       url = add_querystring_params("/search/repositories", options.merge(opts))
       Rails.logger.debug "Github::search_repositories: ".yellow + "fetching #{url} ..."
       get(url, HTTP_OPTIONS)
@@ -114,7 +110,7 @@ class GithubApi
 
     def user(user:, options: {})
       base  = "/users/#{user}"
-      url   = add_querystring_params(base, options.merge(CREDENTIALS))
+      url   = add_querystring_params(base, options)
       Rails.logger.debug "Github::repository_contents: ".yellow + "fetching #{url} ..."
       get(url, HTTP_OPTIONS)
     end
