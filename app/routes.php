@@ -1,0 +1,40 @@
+<?php
+declare(strict_types=1);
+
+function ofx_dispatch(): void
+{
+    $path = (string)parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    $path = rtrim($path, '/');
+    if ($path === '') {
+        $path = '/';
+    }
+    $method = $_SERVER['REQUEST_METHOD'];
+
+    $routes = [
+        ['GET', '#^/$#', fn () => ofx_redirect('/categories')],
+        ['GET', '#^/categories$#', 'ofx_categories_index'],
+        ['GET', '#^/categories/(\d+)(?:-[^/]*)?$#', 'ofx_categories_show'],
+        ['GET', '#^/addons$#', 'ofx_addons_index'],
+        ['GET', '#^/freshest$#', 'ofx_addons_freshest'],
+        ['GET', '#^/popular$#', 'ofx_addons_popular'],
+        ['GET', '#^/unsorted$#', 'ofx_unsorted_index'],
+        ['GET', '#^/contributors$#', 'ofx_contributors_index'],
+        ['GET', '#^/contributors/([^/]+)$#', 'ofx_contributors_show'],
+        ['GET', '#^/auth/github$#', 'ofx_session_new'],
+        ['GET', '#^/auth/github/callback$#', 'ofx_session_create'],
+        ['GET', '#^/logout$#', 'ofx_session_destroy'],
+        ['GET', '#^/admin/repos$#', 'ofx_admin_index'],
+        ['POST', '#^/admin/repos/(\d+)$#', 'ofx_admin_update'],
+    ];
+
+    foreach ($routes as [$m, $pattern, $handler]) {
+        if ($method !== $m || !preg_match($pattern, $path, $matches)) {
+            continue;
+        }
+        array_shift($matches);
+        call_user_func_array($handler, $matches);
+        return;
+    }
+
+    ofx_not_found();
+}
