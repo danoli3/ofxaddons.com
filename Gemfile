@@ -34,6 +34,9 @@ group :bin do
   gem "colorize"                                                    # colorized console output
   gem "httparty", "~>0.14.0"                                        # http connection library
   gem "nokogiri", "~>1.10.0"                                        # used for scraping readme files
+  gem "loofah", "~>2.19.0"                                          # transitive dep of rails-html-sanitizer - pinned because
+                                                                     # unpinned it resolves to a version that hard-requires
+                                                                     # Nokogiri::HTML4, an API nokogiri 1.10.x doesn't have
 end
 
 group :development, :test do
