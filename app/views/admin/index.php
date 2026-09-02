@@ -36,7 +36,7 @@
 </div>
 
 <div class="table-scroll">
-<table class="admin-table" id="admin-table">
+<table class="admin-table" id="admin-table" data-endpoint="/admin/repos">
   <thead>
     <tr>
       <th>Repo</th>

@@ -42,6 +42,18 @@ function ofx_require_admin(): array
     return $user;
 }
 
+// Any logged-in Github account (not just admins) - for /my/addons.
+function ofx_require_user(): array
+{
+    $user = ofx_current_user();
+    if (!$user) {
+        http_response_code(403);
+        ofx_render('errors/403', ['title' => 'Forbidden']);
+        exit;
+    }
+    return $user;
+}
+
 function ofx_base_url(): string
 {
     $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';

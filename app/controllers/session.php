@@ -28,12 +28,10 @@ function ofx_session_create(): void
 
     $user = ofx_login_or_create_user($githubUser);
 
-    if (!empty($user['admin'])) {
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['flash'] = 'Signed in!';
-    } else {
-        $_SESSION['flash'] = "Sorry! At the moment there's nothing useful to do with login unless you're an admin.";
-    }
+    // any Github account gets a session now - admins get the full
+    // admin panel, everyone else gets "My Addons" for repos they own
+    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['flash'] = 'Signed in!';
 
     ofx_redirect('/categories');
 }

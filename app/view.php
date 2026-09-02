@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 const OFX_PAGE_SIZE = 24;
+const OFX_DESCRIPTION_MAX_LENGTH = 350; // matches Github's own repo description limit
 
 function ofx_render(string $template, array $vars = []): void
 {
@@ -45,9 +46,13 @@ function ofx_avatar_url(?string $url): string
 // Addons can ship a 270x70 ofxaddons_thumbnail.png in their repo root
 // (see /pages/howto) - has_thumbnail is set by the crawler when it
 // finds one. /raw/HEAD/ resolves to whatever the default branch is
-// (main, master, ...) without us needing to store it.
-function ofx_thumbnail_url(string $fullName): string
+// (main, master, ...) without us needing to store it. An owner can
+// override this with any image/GIF URL via /my/addons.
+function ofx_thumbnail_url(string $fullName, ?string $override = null): string
 {
+    if ($override) {
+        return $override;
+    }
     return 'https://github.com/' . $fullName . '/raw/HEAD/ofxaddons_thumbnail.png';
 }
 

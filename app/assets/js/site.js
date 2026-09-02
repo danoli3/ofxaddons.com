@@ -72,29 +72,36 @@ $(function () {
     observer.observe(this);
   });
 
-  // admin categorize/type AJAX - shared by Save, Ban, and Unban, which
-  // all just post a type (+ optional category_ids/description) to the
-  // same endpoint. description is omitted entirely for Ban/Unban so it
+  // Shared by the admin categorize table and /my/addons - both render
+  // an .admin-row inside a table carrying data-endpoint ("/admin/repos"
+  // or "/my/addons"), so the same save/ban/generate/char-count wiring
+  // works on either page without duplicating it.
+  function rowEndpoint($row) {
+    return $row.closest('table').data('endpoint');
+  }
+
+  // posts type (+ optional category_ids/description) to the row's
+  // endpoint. description is omitted entirely for Ban/Unban so it
   // doesn't get clobbered - the backend only touches it when the key
   // is present at all.
-  function saveRepoType($row, type, categoryIds, removeIfNot, description, descriptionGenerated) {
+  function saveRepoType($row, type, categoryIds, removeIfNot, description, descriptionGenerated, extra) {
     var repoId = $row.data('repo-id');
     var $status = $row.find('.admin-row__status');
 
     $row.removeClass('is-saved is-error');
     $status.text('Saving…');
 
-    var data = {
+    var data = $.extend({
       type: type,
       category_ids: categoryIds || []
-    };
+    }, extra || {});
     if (description !== undefined) {
       data.description = description;
       data.description_generated = descriptionGenerated ? '1' : '';
     }
 
     $.ajax({
-      url: '/admin/repos/' + repoId,
+      url: rowEndpoint($row) + '/' + repoId,
       method: 'POST',
       data: data,
       dataType: 'json'
@@ -115,33 +122,64 @@ $(function () {
     });
   }
 
-  $('#admin-table').on('click', '.admin-row__save', function () {
+  function updateCharCount($textarea) {
+    var max = parseInt($textarea.attr('maxlength'), 10) || 0;
+    var len = $textarea.val().length;
+    var $count = $textarea.siblings('.admin-row__desc-meta').find('.admin-row__char-count');
+    $count.text(len + ' / ' + max).toggleClass('is-near-limit', max > 0 && len >= max * 0.9);
+  }
+
+  $('.admin-row__desc').each(function () {
+    updateCharCount($(this));
+  });
+
+  $(document).on('click', '.admin-row__save', function () {
     var $row = $(this).closest('.admin-row');
-    var type = $row.find('.admin-row__type').val();
+    var $typeSelect = $row.find('.admin-row__type');
+    var type = $typeSelect.val() || 'Addon';
     var categoryIds = $row.find('.admin-row__categories').val();
     var description = $row.find('.admin-row__desc').val();
     var generated = $row.find('.admin-row__desc-generated').val() === '1';
-    saveRepoType($row, type, categoryIds, ['Unsorted', 'Incomplete'], description, generated);
+
+    // /my/addons rows carry these two extra fields the admin table
+    // doesn't have; harmless (ignored) on the admin endpoint if absent
+    var extra = {};
+    var $hidden = $row.find('.my-addon-row__hidden');
+    if ($hidden.length) extra.hidden = $hidden.is(':checked') ? '1' : '0';
+    var $thumb = $row.find('.my-addon-row__thumbnail');
+    if ($thumb.length) extra.thumbnail_url_override = $thumb.val();
+
+    // only the admin categorize queue removes a row once it's no longer
+    // Unsorted/Incomplete - /my/addons (no type select at all) keeps
+    // rows in place always
+    var removeIfNot = $typeSelect.length ? ['Unsorted', 'Incomplete'] : null;
+
+    saveRepoType($row, type, categoryIds, removeIfNot, description, generated, extra);
   });
 
-  // hand-editing a generated description after the fact means it's no
-  // longer purely AI output - drop the flag so the "AI-generated" badge
-  // doesn't overclaim once it's a mix of AI + human edits
-  $('#admin-table').on('input', '.admin-row__desc', function () {
+  $(document).on('input', '.admin-row__desc', function () {
+    // hand-editing a generated description after the fact means it's no
+    // longer purely AI output - drop the flag so the "AI-generated"
+    // badge doesn't overclaim once it's a mix of AI + human edits
     $(this).siblings('.admin-row__desc-generated').val('0');
+    updateCharCount($(this));
   });
 
-  $('#admin-table').on('click', '.admin-row__ban', function () {
+  $(document).on('click', '.admin-row__ban', function () {
     var $row = $(this).closest('.admin-row');
+    var name = $row.data('repo-name') || 'this repo';
+    if (!window.confirm('Ban "' + name + '"? This marks it as not really an openFrameworks addon.')) {
+      return;
+    }
     saveRepoType($row, 'NonAddon', [], []);
   });
 
-  $('#admin-table').on('click', '.admin-row__unban', function () {
+  $(document).on('click', '.admin-row__unban', function () {
     var $row = $(this).closest('.admin-row');
     saveRepoType($row, 'Unsorted', [], []);
   });
 
-  $('#admin-table').on('click', '.admin-row__generate-desc', function () {
+  $(document).on('click', '.admin-row__generate-desc', function () {
     var $btn = $(this);
     var $row = $btn.closest('.admin-row');
     var repoId = $row.data('repo-id');
@@ -152,12 +190,13 @@ $(function () {
     $status.text('Generating…');
 
     $.ajax({
-      url: '/admin/repos/' + repoId + '/generate-description',
+      url: rowEndpoint($row) + '/' + repoId + '/generate-description',
       method: 'POST',
       dataType: 'json'
     }).done(function (res) {
       $desc.val(res.description);
       $row.find('.admin-row__desc-generated').val('1');
+      updateCharCount($desc);
       $status.text('Suggested - review & Save');
     }).fail(function (xhr) {
       var msg = 'Generate failed';

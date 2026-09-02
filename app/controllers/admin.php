@@ -103,6 +103,13 @@ function ofx_admin_update(string $id): void
         return;
     }
 
+    // client-side maxlength is just UX - enforce it server-side too
+    if (array_key_exists('description', $_POST) && mb_strlen($_POST['description']) > OFX_DESCRIPTION_MAX_LENGTH) {
+        http_response_code(400);
+        echo json_encode(['status' => 400, 'error' => ['Description is over ' . OFX_DESCRIPTION_MAX_LENGTH . ' characters']]);
+        return;
+    }
+
     $pdo = ofx_db();
     $pdo->beginTransaction();
     try {

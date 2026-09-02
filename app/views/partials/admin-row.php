@@ -3,7 +3,7 @@
 /** @var array $categories */
 /** @var array $selectedCategoryIds */
 ?>
-<tr class="admin-row" data-repo-id="<?= (int)$repo['id'] ?>">
+<tr class="admin-row" data-repo-id="<?= (int)$repo['id'] ?>" data-repo-name="<?= ofx_h($repo['name'] ?? $repo['full_name'] ?? '') ?>">
   <td>
     <a href="https://github.com/<?= ofx_h($repo['full_name']) ?>" target="_blank" rel="noopener">
       <?= ofx_h($repo['name']) ?>
@@ -14,9 +14,11 @@
     </a>
   </td>
   <td class="admin-row__desc-cell">
-    <textarea class="admin-row__desc" rows="3"><?= ofx_h($repo['description'] ?? '') ?></textarea>
+    <textarea class="admin-row__desc" rows="3"
+              maxlength="<?= OFX_DESCRIPTION_MAX_LENGTH ?>"><?= ofx_h($repo['description'] ?? '') ?></textarea>
     <input type="hidden" class="admin-row__desc-generated" value="<?= !empty($repo['description_generated']) ? '1' : '0' ?>">
     <div class="admin-row__desc-meta">
+      <span class="admin-row__char-count"></span>
       <?php if (!empty($repo['description_curated'])): ?>
         <span class="tag tag--curated" title="Saved by an admin - a crawl sync won't overwrite this">
           <?= !empty($repo['description_generated']) ? 'AI-generated' : 'Curated' ?>

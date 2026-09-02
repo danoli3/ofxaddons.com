@@ -34,6 +34,9 @@ function ofx_dispatch(): void
         ['GET', '#^/admin/admins$#', 'ofx_admin_admins'],
         ['GET', '#^/admin/export\.(json|xml)$#', 'ofx_admin_export'],
         ['POST', '#^/admin/import$#', 'ofx_admin_import'],
+        ['GET', '#^/my/addons$#', 'ofx_my_addons_index'],
+        ['POST', '#^/my/addons/(\d+)$#', 'ofx_my_addons_update'],
+        ['POST', '#^/my/addons/(\d+)/generate-description$#', 'ofx_my_addons_generate_description'],
     ];
 
     foreach ($routes as [$m, $pattern, $handler]) {

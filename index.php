@@ -20,6 +20,7 @@ require_once __DIR__ . '/app/controllers/pages.php';
 require_once __DIR__ . '/app/controllers/session.php';
 require_once __DIR__ . '/app/controllers/admin.php';
 require_once __DIR__ . '/app/controllers/webhooks.php';
+require_once __DIR__ . '/app/controllers/my_addons.php';
 require_once __DIR__ . '/app/routes.php';
 
 ofx_dispatch();

@@ -28,7 +28,10 @@ $flash = ofx_flash_get();
         <a href="/unsorted">Unsorted</a>
         <a href="/contributors">Contributors</a>
         <?php if ($user): ?>
-          <a href="/admin/repos">Admin</a>
+          <a href="/my/addons">My Addons</a>
+          <?php if (!empty($user['admin'])): ?>
+            <a href="/admin/repos">Admin</a>
+          <?php endif; ?>
           <a href="/logout">Sign out (<?= ofx_h($user['login']) ?>)</a>
         <?php else: ?>
           <a href="/auth/github">Sign in with GitHub</a>

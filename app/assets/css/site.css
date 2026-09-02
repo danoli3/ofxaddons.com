@@ -381,6 +381,8 @@ main.wrap { padding-top: 30px; padding-bottom: 70px; min-height: 50vh; }
 }
 .admin-row__desc:focus { outline: 2px solid var(--accent-1); outline-offset: 1px; }
 .admin-row__desc-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.admin-row__char-count { font-size: .72rem; color: var(--text-muted); }
+.admin-row__char-count.is-near-limit { color: #f0b93b; font-weight: 600; }
 .admin-row__generate-desc {
   background: transparent;
   color: var(--accent-1);
@@ -412,6 +414,27 @@ main.wrap { padding-top: 30px; padding-bottom: 70px; min-height: 50vh; }
   outline-offset: 1px;
 }
 .admin-row__categories option { padding: 3px 6px; }
+.my-addon-row__thumbnail {
+  width: 100%;
+  min-width: 160px;
+  box-sizing: border-box;
+  background: var(--bg-alt);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: .8rem;
+  padding: 6px 8px;
+  margin-bottom: 8px;
+}
+.my-addon-row__thumbnail:focus { outline: 2px solid var(--accent-1); outline-offset: 1px; }
+.my-addon-row__hidden-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .78rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
 .admin-row__save {
   background: var(--gradient);
   color: #0b0d14;

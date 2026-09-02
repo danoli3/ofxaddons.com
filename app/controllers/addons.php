@@ -38,7 +38,7 @@ function ofx_render_addons_sorted(?string $sort): void
         LEFT JOIN users u ON u.id = r.user_id
         LEFT JOIN categorizations cz ON cz.repo_id = r.id
         LEFT JOIN categories c ON c.id = cz.category_id
-        WHERE r.type = 'Addon'
+        WHERE r.type = 'Addon' AND r.hidden_by_owner = 0
         GROUP BY r.id
         ORDER BY {$order}
         LIMIT {$fetch} OFFSET {$offset}

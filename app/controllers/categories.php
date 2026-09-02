@@ -12,7 +12,7 @@ function ofx_categories_index(): void
         FROM repos r
         JOIN categorizations cz ON cz.repo_id = r.id
         LEFT JOIN users u ON u.id = r.user_id
-        WHERE r.type = "Addon"
+        WHERE r.type = "Addon" AND r.hidden_by_owner = 0
         ORDER BY LOWER(r.name) ASC
     ');
 
@@ -53,7 +53,7 @@ function ofx_categories_show(string $id): void
         FROM repos r
         JOIN categorizations cz ON cz.repo_id = r.id
         LEFT JOIN users u ON u.id = r.user_id
-        WHERE cz.category_id = ? AND r.type = 'Addon'
+        WHERE cz.category_id = ? AND r.type = 'Addon' AND r.hidden_by_owner = 0
         ORDER BY LOWER(r.name) ASC
         LIMIT {$fetch} OFFSET {$offset}
     ");
