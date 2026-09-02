@@ -77,7 +77,7 @@ $(function () {
   // same endpoint. description is omitted entirely for Ban/Unban so it
   // doesn't get clobbered - the backend only touches it when the key
   // is present at all.
-  function saveRepoType($row, type, categoryIds, removeIfNot, description) {
+  function saveRepoType($row, type, categoryIds, removeIfNot, description, descriptionGenerated) {
     var repoId = $row.data('repo-id');
     var $status = $row.find('.admin-row__status');
 
@@ -88,7 +88,10 @@ $(function () {
       type: type,
       category_ids: categoryIds || []
     };
-    if (description !== undefined) data.description = description;
+    if (description !== undefined) {
+      data.description = description;
+      data.description_generated = descriptionGenerated ? '1' : '';
+    }
 
     $.ajax({
       url: '/admin/repos/' + repoId,
@@ -117,7 +120,15 @@ $(function () {
     var type = $row.find('.admin-row__type').val();
     var categoryIds = $row.find('.admin-row__categories').val();
     var description = $row.find('.admin-row__desc').val();
-    saveRepoType($row, type, categoryIds, ['Unsorted', 'Incomplete'], description);
+    var generated = $row.find('.admin-row__desc-generated').val() === '1';
+    saveRepoType($row, type, categoryIds, ['Unsorted', 'Incomplete'], description, generated);
+  });
+
+  // hand-editing a generated description after the fact means it's no
+  // longer purely AI output - drop the flag so the "AI-generated" badge
+  // doesn't overclaim once it's a mix of AI + human edits
+  $('#admin-table').on('input', '.admin-row__desc', function () {
+    $(this).siblings('.admin-row__desc-generated').val('0');
   });
 
   $('#admin-table').on('click', '.admin-row__ban', function () {
@@ -146,6 +157,7 @@ $(function () {
       dataType: 'json'
     }).done(function (res) {
       $desc.val(res.description);
+      $row.find('.admin-row__desc-generated').val('1');
       $status.text('Suggested - review & Save');
     }).fail(function (xhr) {
       var msg = 'Generate failed';

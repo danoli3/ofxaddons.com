@@ -17,7 +17,7 @@ function ofx_apply_crawl_snapshot(PDO $pdo, array $addons): array
             continue;
         }
 
-        $stmt = $pdo->prepare('SELECT id, type FROM repos WHERE full_name = ? LIMIT 1');
+        $stmt = $pdo->prepare('SELECT id, type, description_curated FROM repos WHERE full_name = ? LIMIT 1');
         $stmt->execute([$fullName]);
         $existing = $stmt->fetch();
 
@@ -44,7 +44,6 @@ function ofx_apply_crawl_snapshot(PDO $pdo, array $addons): array
 
         $params = [
             ofx_sync_to_datetime($item['created_at'] ?? null),
-            $item['description'] ?? null,
             (int)($item['forks_count'] ?? 0),
             !empty($item['fork']) ? 1 : 0,
             $item['name'] ?? null,
@@ -62,20 +61,33 @@ function ofx_apply_crawl_snapshot(PDO $pdo, array $addons): array
             $type,
         ];
 
+        // An admin-saved description (hand-typed or AI-generated, once
+        // reviewed and saved) is sticky - a crawl re-run should never
+        // silently overwrite it, no matter what Github's own repo
+        // description field says.
+        $isCurated = !empty($existing['description_curated']);
+
         if ($existing) {
-            $sql = 'UPDATE repos SET created_at=?, description=?, forks_count=?, fork=?, name=?, parent=?,
-                    pushed_at=?, source=?, stargazers_count=?, example_count=?, has_makefile=?,
-                    has_correct_folder_structure=?, has_thumbnail=?, archived=?, has_releases=?, user_id=?,
-                    type=?, updated_at=NOW()
-                    WHERE id=?';
-            $pdo->prepare($sql)->execute([...$params, $existing['id']]);
+            $sql = $isCurated
+                ? 'UPDATE repos SET created_at=?, forks_count=?, fork=?, name=?, parent=?,
+                   pushed_at=?, source=?, stargazers_count=?, example_count=?, has_makefile=?,
+                   has_correct_folder_structure=?, has_thumbnail=?, archived=?, has_releases=?, user_id=?,
+                   type=?, updated_at=NOW()
+                   WHERE id=?'
+                : 'UPDATE repos SET created_at=?, forks_count=?, fork=?, name=?, parent=?,
+                   pushed_at=?, source=?, stargazers_count=?, example_count=?, has_makefile=?,
+                   has_correct_folder_structure=?, has_thumbnail=?, archived=?, has_releases=?, user_id=?,
+                   type=?, description=?, updated_at=NOW()
+                   WHERE id=?';
+            $execParams = $isCurated ? $params : [...$params, $item['description'] ?? null];
+            $pdo->prepare($sql)->execute([...$execParams, $existing['id']]);
             $updated++;
         } else {
-            $sql = 'INSERT INTO repos (created_at, description, forks_count, fork, name, parent, pushed_at,
+            $sql = 'INSERT INTO repos (created_at, forks_count, fork, name, parent, pushed_at,
                     source, stargazers_count, example_count, has_makefile, has_correct_folder_structure,
-                    has_thumbnail, archived, has_releases, user_id, type, full_name, updated_at)
+                    has_thumbnail, archived, has_releases, user_id, type, description, full_name, updated_at)
                     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())';
-            $pdo->prepare($sql)->execute([...$params, $fullName]);
+            $pdo->prepare($sql)->execute([...$params, $item['description'] ?? null, $fullName]);
             $added++;
         }
     }

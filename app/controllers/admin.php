@@ -107,10 +107,15 @@ function ofx_admin_update(string $id): void
     $pdo->beginTransaction();
     try {
         // description is optional - Ban/Unban post type+category_ids
-        // only, and shouldn't clobber the existing description
+        // only, and shouldn't clobber the existing description. Saving
+        // one here (hand-typed or AI-generated-then-reviewed) marks it
+        // curated, so a later crawl sync never silently overwrites it.
         if (array_key_exists('description', $_POST)) {
-            $pdo->prepare('UPDATE repos SET type = ?, description = ?, updated_at = NOW() WHERE id = ?')
-                ->execute([$type, $_POST['description'], $id]);
+            $generated = !empty($_POST['description_generated']) ? 1 : 0;
+            $pdo->prepare(
+                'UPDATE repos SET type = ?, description = ?, description_curated = 1,
+                 description_generated = ?, updated_at = NOW() WHERE id = ?'
+            )->execute([$type, $_POST['description'], $generated, $id]);
         } else {
             $pdo->prepare('UPDATE repos SET type = ?, updated_at = NOW() WHERE id = ?')->execute([$type, $id]);
         }
@@ -132,6 +137,22 @@ function ofx_admin_update(string $id): void
         echo json_encode(['status' => 500, 'error' => [$e->getMessage()]]);
         return;
     }
+
+    $categoryNames = [];
+    if (!empty($categoryIds)) {
+        $placeholders = implode(',', array_fill(0, count($categoryIds), '?'));
+        $stmt = $pdo->prepare("SELECT name FROM categories WHERE id IN ({$placeholders})");
+        $stmt->execute($categoryIds);
+        $categoryNames = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+    $details = "type: {$type}";
+    if (!empty($categoryNames)) {
+        $details .= '; categories: ' . implode(', ', $categoryNames);
+    }
+    if (array_key_exists('description', $_POST)) {
+        $details .= !empty($_POST['description_generated']) ? '; description: AI-generated' : '; description: edited';
+    }
+    ofx_log_admin_action($pdo, ofx_current_user()['id'] ?? null, 'update_repo', (int)$id, $details);
 
     echo json_encode(['status' => 200, 'repo' => ['id' => (int)$id, 'type' => $type]]);
 }
@@ -277,7 +298,16 @@ function ofx_admin_import(): void
         return;
     }
 
-    $result = ofx_apply_addon_import(ofx_db(), $entries);
+    $pdo = ofx_db();
+    $result = ofx_apply_addon_import($pdo, $entries);
+
+    ofx_log_admin_action(
+        $pdo,
+        ofx_current_user()['id'] ?? null,
+        'bulk_import',
+        null,
+        "{$name}: {$result['updated']} categorized, {$result['notFound']} not found"
+    );
 
     $_SESSION['flash'] = "Import done: {$result['updated']} addon(s) categorized, "
         . "{$result['notFound']} not found in this database.";
@@ -363,4 +393,43 @@ function ofx_apply_addon_import(PDO $pdo, array $entries): array
     }
 
     return ['updated' => $updated, 'notFound' => $notFound];
+}
+
+const OFX_ADMIN_LOG_LIMIT = 200;
+
+// GET /admin/log - recent admin actions (categorize/ban/unban/import),
+// who did them (Github login) and when.
+function ofx_admin_log(): void
+{
+    ofx_require_admin();
+    $pdo = ofx_db();
+
+    $stmt = $pdo->query('
+        SELECT l.*, u.login AS user_login, u.avatar_url AS user_avatar_url, r.full_name AS repo_full_name,
+               r.name AS repo_name
+        FROM admin_logs l
+        LEFT JOIN users u ON u.id = l.user_id
+        LEFT JOIN repos r ON r.id = l.repo_id
+        ORDER BY l.created_at DESC
+        LIMIT ' . OFX_ADMIN_LOG_LIMIT
+    );
+
+    ofx_render('admin/log', [
+        'entries' => $stmt->fetchAll(),
+        'title' => 'Admin Log',
+    ]);
+}
+
+// GET /admin/admins - who currently has admin access.
+function ofx_admin_admins(): void
+{
+    ofx_require_admin();
+    $pdo = ofx_db();
+
+    $stmt = $pdo->query('SELECT * FROM users WHERE admin = 1 ORDER BY LOWER(login) ASC');
+
+    ofx_render('admin/admins', [
+        'admins' => $stmt->fetchAll(),
+        'title' => 'Admins',
+    ]);
 }

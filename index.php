@@ -11,6 +11,7 @@ require_once __DIR__ . '/app/view.php';
 require_once __DIR__ . '/app/auth.php';
 require_once __DIR__ . '/app/sync.php';
 require_once __DIR__ . '/app/ai.php';
+require_once __DIR__ . '/app/audit.php';
 require_once __DIR__ . '/app/controllers/categories.php';
 require_once __DIR__ . '/app/controllers/addons.php';
 require_once __DIR__ . '/app/controllers/unsorted.php';

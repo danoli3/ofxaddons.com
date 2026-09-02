@@ -22,6 +22,8 @@
     <input type="file" name="file" accept=".json,.xml" required>
     <button type="submit">Upload</button>
   </form>
+  <a class="admin-toolbar__link" href="/admin/log">Log &rarr;</a>
+  <a class="admin-toolbar__link" href="/admin/admins">Admins &rarr;</a>
   <a class="admin-toolbar__link" href="/admin/banned">Banned addons &rarr;</a>
 </div>
 
@@ -33,6 +35,7 @@
   <?php endforeach; ?>
 </div>
 
+<div class="table-scroll">
 <table class="admin-table" id="admin-table">
   <thead>
     <tr>
@@ -49,6 +52,7 @@
     <?php endforeach; ?>
   </tbody>
 </table>
+</div>
 <div class="grid-sentinel" id="admin-sentinel"></div>
 <div class="grid-loading" hidden>
   <span class="spinner"></span> Loading more&hellip;

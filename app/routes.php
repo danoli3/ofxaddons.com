@@ -30,6 +30,8 @@ function ofx_dispatch(): void
         ['POST', '#^/admin/repos/(\d+)$#', 'ofx_admin_update'],
         ['POST', '#^/admin/repos/(\d+)/generate-description$#', 'ofx_admin_generate_description'],
         ['GET', '#^/admin/banned$#', 'ofx_admin_banned'],
+        ['GET', '#^/admin/log$#', 'ofx_admin_log'],
+        ['GET', '#^/admin/admins$#', 'ofx_admin_admins'],
         ['GET', '#^/admin/export\.(json|xml)$#', 'ofx_admin_export'],
         ['POST', '#^/admin/import$#', 'ofx_admin_import'],
     ];

@@ -13,6 +13,7 @@
   <p class="empty-state">Nothing banned.</p>
 <?php endif; ?>
 
+<div class="table-scroll">
 <table class="admin-table" id="admin-table">
   <thead>
     <tr>
@@ -30,7 +31,7 @@
           </a>
           <div class="admin-row__owner"><?= ofx_h($repo['user_login'] ?? '') ?></div>
         </td>
-        <td class="admin-row__desc"><?= ofx_h($repo['description'] ?: '') ?></td>
+        <td class="admin-row__desc-static"><?= ofx_h($repo['description'] ?: '') ?></td>
         <td class="admin-row__actions">
           <button type="button" class="admin-row__unban">Unban</button>
           <span class="admin-row__status"></span>
@@ -39,3 +40,4 @@
     <?php endforeach; ?>
   </tbody>
 </table>
+</div>

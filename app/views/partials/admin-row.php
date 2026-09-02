@@ -15,11 +15,19 @@
   </td>
   <td class="admin-row__desc-cell">
     <textarea class="admin-row__desc" rows="3"><?= ofx_h($repo['description'] ?? '') ?></textarea>
-    <?php if (empty($repo['description'])): ?>
-      <button type="button" class="admin-row__generate-desc" title="Generate a description from the repo's README">
-        &#10024; Generate
-      </button>
-    <?php endif; ?>
+    <input type="hidden" class="admin-row__desc-generated" value="<?= !empty($repo['description_generated']) ? '1' : '0' ?>">
+    <div class="admin-row__desc-meta">
+      <?php if (!empty($repo['description_curated'])): ?>
+        <span class="tag tag--curated" title="Saved by an admin - a crawl sync won't overwrite this">
+          <?= !empty($repo['description_generated']) ? 'AI-generated' : 'Curated' ?>
+        </span>
+      <?php endif; ?>
+      <?php if (empty($repo['description'])): ?>
+        <button type="button" class="admin-row__generate-desc" title="Generate a description from the repo's README">
+          &#10024; Generate
+        </button>
+      <?php endif; ?>
+    </div>
   </td>
   <td>
     <select class="admin-row__type">
