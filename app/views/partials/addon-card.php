@@ -4,8 +4,10 @@ $categories = !empty($addon['categories']) ? explode('||', $addon['categories'])
 ?>
 <article class="addon-card" data-name="<?= ofx_h(strtolower($addon['name'] ?? '')) ?>" data-desc="<?= ofx_h(strtolower($addon['description'] ?? '')) ?>">
   <?php if (!empty($addon['has_thumbnail']) && !empty($addon['full_name'])): ?>
-    <img class="addon-card__thumb" src="<?= ofx_h(ofx_thumbnail_url($addon['full_name'])) ?>" alt="" loading="lazy"
-         onerror="this.remove()">
+    <a href="https://github.com/<?= ofx_h($addon['full_name']) ?>" target="_blank" rel="noopener">
+      <img class="addon-card__thumb" src="<?= ofx_h(ofx_thumbnail_url($addon['full_name'])) ?>" alt="" loading="lazy"
+           onerror="this.closest('a').remove()">
+    </a>
   <?php endif; ?>
   <div class="addon-card__head">
     <img class="addon-card__avatar" src="<?= ofx_h(ofx_avatar_url($addon['user_avatar_url'] ?? null)) ?>" alt="" loading="lazy">
@@ -19,6 +21,13 @@ $categories = !empty($addon['categories']) ? explode('||', $addon['categories'])
         </a>
       <?php endif; ?>
     </div>
+    <?php if (!empty($addon['archived'])): ?>
+      <span class="tag tag--archived" title="Owner has archived this repo on Github">Archived</span>
+    <?php endif; ?>
+    <?php if (!empty($addon['has_releases'])): ?>
+      <a class="tag tag--releases" href="https://github.com/<?= ofx_h($addon['full_name'] ?? '') ?>/releases"
+         target="_blank" rel="noopener" title="Has tagged Github releases">Releases</a>
+    <?php endif; ?>
   </div>
 
   <p class="addon-card__desc"><?= ofx_h($addon['description'] ?: 'No description.') ?></p>

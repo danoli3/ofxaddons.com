@@ -9,6 +9,7 @@ require_once __DIR__ . '/app/env.php';
 require_once __DIR__ . '/app/db.php';
 require_once __DIR__ . '/app/view.php';
 require_once __DIR__ . '/app/auth.php';
+require_once __DIR__ . '/app/sync.php';
 require_once __DIR__ . '/app/controllers/categories.php';
 require_once __DIR__ . '/app/controllers/addons.php';
 require_once __DIR__ . '/app/controllers/unsorted.php';
@@ -16,6 +17,7 @@ require_once __DIR__ . '/app/controllers/contributors.php';
 require_once __DIR__ . '/app/controllers/pages.php';
 require_once __DIR__ . '/app/controllers/session.php';
 require_once __DIR__ . '/app/controllers/admin.php';
+require_once __DIR__ . '/app/controllers/webhooks.php';
 require_once __DIR__ . '/app/routes.php';
 
 ofx_dispatch();

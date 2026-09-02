@@ -21,6 +21,8 @@ function ofx_dispatch(): void
         ['GET', '#^/contributors$#', 'ofx_contributors_index'],
         ['GET', '#^/contributors/([^/]+)$#', 'ofx_contributors_show'],
         ['GET', '#^/pages/howto$#', 'ofx_pages_howto'],
+        ['POST', '#^/webhooks/sync$#', 'ofx_webhook_sync'],
+        ['GET', '#^/banned\.json$#', 'ofx_banned_json'],
         ['GET', '#^/auth/github$#', 'ofx_session_new'],
         ['GET', '#^/auth/github/callback$#', 'ofx_session_create'],
         ['GET', '#^/logout$#', 'ofx_session_destroy'],
