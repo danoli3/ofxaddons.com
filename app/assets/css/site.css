@@ -219,6 +219,7 @@ main.wrap { padding-top: 30px; padding-bottom: 70px; min-height: 50vh; }
 
 /* infinite scroll */
 .grid-sentinel { height: 1px; }
+.grid-loading[hidden] { display: none; }
 .grid-loading {
   display: flex;
   align-items: center;
@@ -265,6 +266,34 @@ main.wrap { padding-top: 30px; padding-bottom: 70px; min-height: 50vh; }
 .contributor-head { align-items: center; gap: 16px; }
 .contributor-head__avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; }
 
+/* admin toolbar */
+.admin-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin: 18px 0;
+  font-size: .85rem;
+}
+.admin-toolbar__group { display: flex; align-items: center; gap: 10px; margin: 0; }
+.admin-toolbar__label { color: var(--text-muted); font-weight: 600; }
+.admin-toolbar__group input[type="file"] { color: var(--text-muted); font-size: .8rem; max-width: 200px; }
+.admin-toolbar__group button {
+  background: var(--surface-hover);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-size: .8rem;
+  font-weight: 600;
+}
+.admin-toolbar__link { margin-left: auto; font-weight: 600; }
+
 /* admin table */
 .admin-table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 .admin-table th, .admin-table td { padding: 11px 12px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; font-size: .88rem; }
@@ -289,6 +318,18 @@ main.wrap { padding-top: 30px; padding-bottom: 70px; min-height: 50vh; }
   font-size: .85rem;
 }
 .admin-row__save:hover { opacity: .9; }
+.admin-row__ban, .admin-row__unban {
+  background: transparent;
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 107, 107, .4);
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: .85rem;
+  margin-left: 6px;
+}
+.admin-row__ban:hover, .admin-row__unban:hover { background: rgba(255, 107, 107, .1); }
 .admin-row__status { margin-left: 8px; font-size: .8rem; color: var(--text-muted); }
 .admin-row.is-saved { background: rgba(56, 225, 198, .06); }
 .admin-row.is-error .admin-row__status { color: #ff6b6b; }

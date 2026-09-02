@@ -8,6 +8,20 @@
 </div>
 <p class="page-intro"><?= count($repos) ?> repo(s) waiting to be categorized (Unsorted / Incomplete).</p>
 
+<div class="admin-toolbar">
+  <div class="admin-toolbar__group">
+    <span class="admin-toolbar__label">Export</span>
+    <a href="/admin/export.json">JSON</a>
+    <a href="/admin/export.xml">XML</a>
+  </div>
+  <form class="admin-toolbar__group" action="/admin/import" method="post" enctype="multipart/form-data">
+    <span class="admin-toolbar__label">Import</span>
+    <input type="file" name="file" accept=".json,.xml" required>
+    <button type="submit">Upload</button>
+  </form>
+  <a class="admin-toolbar__link" href="/admin/banned">Banned addons &rarr;</a>
+</div>
+
 <table class="admin-table" id="admin-table">
   <thead>
     <tr>
@@ -47,8 +61,9 @@
             <?php endforeach; ?>
           </select>
         </td>
-        <td>
+        <td class="admin-row__actions">
           <button type="button" class="admin-row__save">Save</button>
+          <button type="button" class="admin-row__ban" title="Not really an openFrameworks addon">Ban</button>
           <span class="admin-row__status"></span>
         </td>
       </tr>

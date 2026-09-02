@@ -72,12 +72,10 @@ $(function () {
     observer.observe(this);
   });
 
-  // admin categorize/type AJAX form
-  $('#admin-table').on('click', '.admin-row__save', function () {
-    var $row = $(this).closest('.admin-row');
+  // admin categorize/type AJAX - shared by Save, Ban, and Unban, which
+  // all just post a type (+ optional category_ids) to the same endpoint
+  function saveRepoType($row, type, categoryIds, removeIfNot) {
     var repoId = $row.data('repo-id');
-    var type = $row.find('.admin-row__type').val();
-    var categoryIds = $row.find('.admin-row__categories').val() || [];
     var $status = $row.find('.admin-row__status');
 
     $row.removeClass('is-saved is-error');
@@ -88,13 +86,13 @@ $(function () {
       method: 'POST',
       data: {
         type: type,
-        category_ids: categoryIds
+        category_ids: categoryIds || []
       },
       dataType: 'json'
-    }).done(function (res) {
+    }).done(function () {
       $row.addClass('is-saved');
       $status.text('Saved ✓');
-      if (type !== 'Unsorted' && type !== 'Incomplete') {
+      if (removeIfNot && removeIfNot.indexOf(type) === -1) {
         $row.fadeOut(300, function () { $row.remove(); });
       }
     }).fail(function (xhr) {
@@ -106,5 +104,22 @@ $(function () {
       } catch (e) {}
       $status.text(msg);
     });
+  }
+
+  $('#admin-table').on('click', '.admin-row__save', function () {
+    var $row = $(this).closest('.admin-row');
+    var type = $row.find('.admin-row__type').val();
+    var categoryIds = $row.find('.admin-row__categories').val();
+    saveRepoType($row, type, categoryIds, ['Unsorted', 'Incomplete']);
+  });
+
+  $('#admin-table').on('click', '.admin-row__ban', function () {
+    var $row = $(this).closest('.admin-row');
+    saveRepoType($row, 'NonAddon', [], []);
+  });
+
+  $('#admin-table').on('click', '.admin-row__unban', function () {
+    var $row = $(this).closest('.admin-row');
+    saveRepoType($row, 'Unsorted', [], []);
   });
 });
