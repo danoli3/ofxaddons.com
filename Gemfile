@@ -2,6 +2,9 @@ source "https://rubygems.org"
 ruby "2.4.4"
 
 gem "rails", "~>4.2.10"
+gem "bigdecimal", "~>1.3.0"                                         # pin to the version bundled with ruby 2.4.4 -
+                                                                     # unpinned, bundler resolves the newest release,
+                                                                     # which requires ruby >= 2.6
 gem "font-awesome-sass"                                             # font icons
 gem "high_voltage", "~>3.0"                                         # serving static pages (wrapped in the layout)
 gem "lograge", "~>0.4"                                              # denser application logs
