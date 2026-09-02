@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+const OFX_PAGE_SIZE = 24;
+
 function ofx_render(string $template, array $vars = []): void
 {
     extract($vars, EXTR_SKIP);
@@ -43,4 +45,61 @@ function ofx_avatar_url(?string $url): string
 function ofx_addon_partial(array $addon): void
 {
     include __DIR__ . '/views/partials/addon-card.php';
+}
+
+function ofx_addon_grid(array $addons, bool $hasMore, string $nextUrl): void
+{
+    include __DIR__ . '/views/partials/addon-grid.php';
+}
+
+function ofx_is_ajax(): bool
+{
+    return ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest';
+}
+
+// Adds ?page=N (replacing any existing page param) to the current
+// request's path+query, for the infinite-scroll "load more" link.
+function ofx_next_page_url(int $nextPage): string
+{
+    $params = $_GET;
+    $params['page'] = $nextPage;
+    $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    return $path . '?' . http_build_query($params);
+}
+
+// Splits $rows into [rowsToShow, hasMore] - fetch $limit+1 upstream to
+// avoid a second COUNT query.
+function ofx_paginate_slice(array $rows, int $limit): array
+{
+    $hasMore = count($rows) > $limit;
+    return [array_slice($rows, 0, $limit), $hasMore];
+}
+
+function ofx_time_ago(?string $datetime): string
+{
+    if (!$datetime) {
+        return '';
+    }
+    $diff = time() - strtotime($datetime);
+    if ($diff < 60) {
+        return 'just now';
+    }
+    $mins = intdiv($diff, 60);
+    if ($mins < 60) {
+        return "{$mins}m ago";
+    }
+    $hours = intdiv($mins, 60);
+    if ($hours < 24) {
+        return "{$hours}h ago";
+    }
+    $days = intdiv($hours, 24);
+    if ($days < 30) {
+        return "{$days}d ago";
+    }
+    $months = intdiv($days, 30);
+    if ($months < 12) {
+        return "{$months}mo ago";
+    }
+    $years = intdiv($months, 12);
+    return "{$years}y ago";
 }

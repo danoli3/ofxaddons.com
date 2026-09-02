@@ -1,5 +1,7 @@
 <?php
 /** @var array $addons */
+/** @var bool $hasMore */
+/** @var string $nextUrl */
 /** @var string|null $sort */
 ?>
 <div class="page-head">
@@ -13,8 +15,4 @@
   <a href="/addons?sort=popular" class="<?= $sort === 'popular' ? 'active' : '' ?>">Popular</a>
 </div>
 
-<div class="addon-grid">
-  <?php foreach ($addons as $addon): ?>
-    <?php ofx_addon_partial($addon); ?>
-  <?php endforeach; ?>
-</div>
+<?php ofx_addon_grid($addons, $hasMore, $nextUrl); ?>

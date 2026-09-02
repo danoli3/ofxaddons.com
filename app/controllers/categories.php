@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+const OFX_CATEGORY_PREVIEW_SIZE = 8;
+
 function ofx_categories_index(): void
 {
     $pdo = ofx_db();
@@ -42,20 +44,35 @@ function ofx_categories_show(string $id): void
         return;
     }
 
-    $stmt = $pdo->prepare('
+    $page = max(1, (int)($_GET['page'] ?? 1));
+    $offset = ($page - 1) * OFX_PAGE_SIZE;
+    $fetch = OFX_PAGE_SIZE + 1;
+
+    $stmt = $pdo->prepare("
         SELECT r.*, u.login AS user_login, u.avatar_url AS user_avatar_url
         FROM repos r
         JOIN categorizations cz ON cz.repo_id = r.id
         LEFT JOIN users u ON u.id = r.user_id
-        WHERE cz.category_id = ? AND r.type = "Addon"
+        WHERE cz.category_id = ? AND r.type = 'Addon'
         ORDER BY LOWER(r.name) ASC
-    ');
+        LIMIT {$fetch} OFFSET {$offset}
+    ");
     $stmt->execute([$id]);
-    $addons = $stmt->fetchAll();
+    [$addons, $hasMore] = ofx_paginate_slice($stmt->fetchAll(), OFX_PAGE_SIZE);
+
+    if (ofx_is_ajax()) {
+        header('X-Has-More: ' . ($hasMore ? '1' : '0'));
+        foreach ($addons as $addon) {
+            ofx_addon_partial($addon);
+        }
+        return;
+    }
 
     ofx_render('categories/show', [
         'category' => $category,
         'addons' => $addons,
+        'hasMore' => $hasMore,
+        'nextUrl' => ofx_next_page_url(2),
         'title' => $category['name'],
     ]);
 }

@@ -1,5 +1,7 @@
 <?php
 /** @var array $repos */
+/** @var bool $hasMore */
+/** @var string $nextUrl */
 ?>
 <div class="page-head">
   <h1>Unsorted</h1>
@@ -11,8 +13,4 @@
   <p class="empty-state">Nothing unsorted right now.</p>
 <?php endif; ?>
 
-<div class="addon-grid">
-  <?php foreach ($repos as $addon): ?>
-    <?php ofx_addon_partial($addon); ?>
-  <?php endforeach; ?>
-</div>
+<?php ofx_addon_grid($repos, $hasMore, $nextUrl); ?>

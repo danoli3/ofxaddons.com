@@ -2,9 +2,10 @@
 /** @var array $categories */
 /** @var array $addonsByCategory */
 ?>
-<div class="page-head">
-  <h1>Categories</h1>
-  <input type="text" class="filter-box" id="addon-filter" placeholder="Filter addons&hellip;">
+<div class="hero">
+  <h1>Discover openFrameworks addons</h1>
+  <p>The central place to find, browse and categorize the openFrameworks addon ecosystem.</p>
+  <input type="text" class="filter-box filter-box--hero" id="addon-filter" placeholder="Search addons&hellip;">
 </div>
 
 <?php if (empty($categories)): ?>
@@ -12,13 +13,17 @@
 <?php endif; ?>
 
 <?php foreach ($categories as $category): ?>
+  <?php $all = $addonsByCategory[$category['id']] ?? []; ?>
   <section class="category-section" id="category-<?= (int)$category['id'] ?>">
     <h2 class="category-section__title">
       <a href="/categories/<?= (int)$category['id'] ?>"><?= ofx_h($category['name']) ?></a>
-      <span class="count"><?= count($addonsByCategory[$category['id']] ?? []) ?></span>
+      <span class="count"><?= count($all) ?></span>
+      <?php if (count($all) > OFX_CATEGORY_PREVIEW_SIZE): ?>
+        <a class="view-all" href="/categories/<?= (int)$category['id'] ?>">View all &rarr;</a>
+      <?php endif; ?>
     </h2>
     <div class="addon-grid">
-      <?php foreach ($addonsByCategory[$category['id']] ?? [] as $addon): ?>
+      <?php foreach (array_slice($all, 0, OFX_CATEGORY_PREVIEW_SIZE) as $addon): ?>
         <?php ofx_addon_partial($addon); ?>
       <?php endforeach; ?>
     </div>
