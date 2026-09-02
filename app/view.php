@@ -42,6 +42,16 @@ function ofx_avatar_url(?string $url): string
     return $url ?: '/app/assets/img/default-gravatar.png';
 }
 
+// Appends ?v=<mtime> so a deploy automatically busts the 30-day cache
+// Apache puts on static assets, instead of visitors running whatever
+// JS/CSS their browser cached from before the last update.
+function ofx_asset_url(string $path): string
+{
+    $file = dirname(__DIR__) . $path;
+    $v = is_readable($file) ? filemtime($file) : time();
+    return $path . '?v=' . $v;
+}
+
 function ofx_addon_partial(array $addon): void
 {
     include __DIR__ . '/views/partials/addon-card.php';

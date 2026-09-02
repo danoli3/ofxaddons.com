@@ -11,7 +11,7 @@ $flash = ofx_flash_get();
   <title><?= ofx_h($title ?? 'ofxAddons') ?> · ofxAddons</title>
   <meta name="description" content="The central place to discover openFrameworks addons.">
   <link rel="icon" href="/app/assets/img/ofxlogo-small.png">
-  <link rel="stylesheet" href="/app/assets/css/site.css">
+  <link rel="stylesheet" href="<?= ofx_h(ofx_asset_url('/app/assets/css/site.css')) ?>">
 </head>
 <body>
   <header class="site-header">
@@ -24,6 +24,7 @@ $flash = ofx_flash_get();
         <a href="/categories">Categories</a>
         <a href="/addons">All Addons</a>
         <a href="/freshest">Freshest</a>
+        <a href="/popular">Popular</a>
         <a href="/unsorted">Unsorted</a>
         <a href="/contributors">Contributors</a>
         <?php if ($user): ?>
@@ -50,6 +51,6 @@ $flash = ofx_flash_get();
   </footer>
 
   <script src="/app/assets/js/vendor/jquery-3.7.1.min.js"></script>
-  <script src="/app/assets/js/site.js"></script>
+  <script src="<?= ofx_h(ofx_asset_url('/app/assets/js/site.js')) ?>"></script>
 </body>
 </html>
