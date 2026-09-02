@@ -1,3 +1,0 @@
-class IncompletePresenter < RepoPresenter
-
-end

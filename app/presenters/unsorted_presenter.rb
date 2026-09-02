@@ -1,3 +1,0 @@
-class UnsortedPresenter < RepoPresenter
-
-end
