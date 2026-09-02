@@ -360,7 +360,32 @@ main.wrap { padding-top: 30px; padding-bottom: 70px; min-height: 50vh; }
 .admin-row__owner { color: var(--text-muted); font-size: .78rem; }
 .admin-row__url { display: block; color: var(--text-muted); font-size: .74rem; margin-top: 2px; }
 .admin-row__url:hover { color: var(--accent-3); }
-.admin-row__desc { color: var(--text-muted); }
+.admin-row__desc-cell { display: flex; flex-direction: column; gap: 6px; }
+.admin-row__desc {
+  width: 100%;
+  resize: vertical;
+  background: var(--bg-alt);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+  font-size: .85rem;
+  padding: 6px 8px;
+}
+.admin-row__desc:focus { outline: 2px solid var(--accent-1); outline-offset: 1px; }
+.admin-row__generate-desc {
+  align-self: flex-start;
+  background: transparent;
+  color: var(--accent-1);
+  border: 1px solid rgba(124, 92, 255, .4);
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: .78rem;
+}
+.admin-row__generate-desc:hover { background: rgba(124, 92, 255, .1); }
+.admin-row__generate-desc:disabled { opacity: .5; cursor: default; }
 .admin-row__type, .admin-row__categories {
   width: 100%;
   min-width: 140px;

@@ -13,7 +13,14 @@
       github.com/<?= ofx_h($repo['full_name']) ?>
     </a>
   </td>
-  <td class="admin-row__desc"><?= ofx_h($repo['description'] ?: '') ?></td>
+  <td class="admin-row__desc-cell">
+    <textarea class="admin-row__desc" rows="3"><?= ofx_h($repo['description'] ?? '') ?></textarea>
+    <?php if (empty($repo['description'])): ?>
+      <button type="button" class="admin-row__generate-desc" title="Generate a description from the repo's README">
+        &#10024; Generate
+      </button>
+    <?php endif; ?>
+  </td>
   <td>
     <select class="admin-row__type">
       <?php foreach (OFX_REPO_TYPES as $type): ?>

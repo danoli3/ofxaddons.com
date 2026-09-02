@@ -106,7 +106,14 @@ function ofx_admin_update(string $id): void
     $pdo = ofx_db();
     $pdo->beginTransaction();
     try {
-        $pdo->prepare('UPDATE repos SET type = ?, updated_at = NOW() WHERE id = ?')->execute([$type, $id]);
+        // description is optional - Ban/Unban post type+category_ids
+        // only, and shouldn't clobber the existing description
+        if (array_key_exists('description', $_POST)) {
+            $pdo->prepare('UPDATE repos SET type = ?, description = ?, updated_at = NOW() WHERE id = ?')
+                ->execute([$type, $_POST['description'], $id]);
+        } else {
+            $pdo->prepare('UPDATE repos SET type = ?, updated_at = NOW() WHERE id = ?')->execute([$type, $id]);
+        }
         $pdo->prepare('DELETE FROM categorizations WHERE repo_id = ?')->execute([$id]);
 
         if (!empty($categoryIds)) {
@@ -127,6 +134,47 @@ function ofx_admin_update(string $id): void
     }
 
     echo json_encode(['status' => 200, 'repo' => ['id' => (int)$id, 'type' => $type]]);
+}
+
+// POST /admin/repos/{id}/generate-description - fetches the repo's
+// README and asks an LLM for a one-sentence description. Returns the
+// suggestion for the admin to review/edit in the row's textarea; it's
+// not saved until they hit Save, same as anything else typed there.
+function ofx_admin_generate_description(string $id): void
+{
+    ofx_require_admin();
+    header('Content-Type: application/json');
+
+    if (!ofx_env('OPENAI_API_KEY')) {
+        http_response_code(501);
+        echo json_encode(['status' => 501, 'error' => ['OPENAI_API_KEY is not configured']]);
+        return;
+    }
+
+    $stmt = ofx_db()->prepare('SELECT full_name, name FROM repos WHERE id = ? LIMIT 1');
+    $stmt->execute([$id]);
+    $repo = $stmt->fetch();
+    if (!$repo) {
+        http_response_code(404);
+        echo json_encode(['status' => 404, 'error' => ['repo not found']]);
+        return;
+    }
+
+    $readme = ofx_fetch_readme($repo['full_name']);
+    if (!$readme) {
+        http_response_code(404);
+        echo json_encode(['status' => 404, 'error' => ['could not fetch a README for this repo']]);
+        return;
+    }
+
+    $description = ofx_generate_description($repo['name'] ?? $repo['full_name'], $readme);
+    if (!$description) {
+        http_response_code(502);
+        echo json_encode(['status' => 502, 'error' => ['description generation failed']]);
+        return;
+    }
+
+    echo json_encode(['status' => 200, 'description' => $description]);
 }
 
 // Repos matching the "ofx" name prefix by coincidence but with nothing

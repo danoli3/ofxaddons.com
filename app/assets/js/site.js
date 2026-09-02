@@ -73,21 +73,27 @@ $(function () {
   });
 
   // admin categorize/type AJAX - shared by Save, Ban, and Unban, which
-  // all just post a type (+ optional category_ids) to the same endpoint
-  function saveRepoType($row, type, categoryIds, removeIfNot) {
+  // all just post a type (+ optional category_ids/description) to the
+  // same endpoint. description is omitted entirely for Ban/Unban so it
+  // doesn't get clobbered - the backend only touches it when the key
+  // is present at all.
+  function saveRepoType($row, type, categoryIds, removeIfNot, description) {
     var repoId = $row.data('repo-id');
     var $status = $row.find('.admin-row__status');
 
     $row.removeClass('is-saved is-error');
     $status.text('Saving…');
 
+    var data = {
+      type: type,
+      category_ids: categoryIds || []
+    };
+    if (description !== undefined) data.description = description;
+
     $.ajax({
       url: '/admin/repos/' + repoId,
       method: 'POST',
-      data: {
-        type: type,
-        category_ids: categoryIds || []
-      },
+      data: data,
       dataType: 'json'
     }).done(function () {
       $row.addClass('is-saved');
@@ -110,7 +116,8 @@ $(function () {
     var $row = $(this).closest('.admin-row');
     var type = $row.find('.admin-row__type').val();
     var categoryIds = $row.find('.admin-row__categories').val();
-    saveRepoType($row, type, categoryIds, ['Unsorted', 'Incomplete']);
+    var description = $row.find('.admin-row__desc').val();
+    saveRepoType($row, type, categoryIds, ['Unsorted', 'Incomplete'], description);
   });
 
   $('#admin-table').on('click', '.admin-row__ban', function () {
@@ -121,6 +128,35 @@ $(function () {
   $('#admin-table').on('click', '.admin-row__unban', function () {
     var $row = $(this).closest('.admin-row');
     saveRepoType($row, 'Unsorted', [], []);
+  });
+
+  $('#admin-table').on('click', '.admin-row__generate-desc', function () {
+    var $btn = $(this);
+    var $row = $btn.closest('.admin-row');
+    var repoId = $row.data('repo-id');
+    var $desc = $row.find('.admin-row__desc');
+    var $status = $row.find('.admin-row__status');
+
+    $btn.prop('disabled', true);
+    $status.text('Generating…');
+
+    $.ajax({
+      url: '/admin/repos/' + repoId + '/generate-description',
+      method: 'POST',
+      dataType: 'json'
+    }).done(function (res) {
+      $desc.val(res.description);
+      $status.text('Suggested - review & Save');
+    }).fail(function (xhr) {
+      var msg = 'Generate failed';
+      try {
+        var body = JSON.parse(xhr.responseText);
+        if (body.error) msg = [].concat(body.error).join(', ');
+      } catch (e) {}
+      $status.text(msg);
+    }).always(function () {
+      $btn.prop('disabled', false);
+    });
   });
 
   // admin table: paginated (same shape as the public addon-grid, but

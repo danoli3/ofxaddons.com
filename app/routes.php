@@ -28,6 +28,7 @@ function ofx_dispatch(): void
         ['GET', '#^/logout$#', 'ofx_session_destroy'],
         ['GET', '#^/admin/repos$#', 'ofx_admin_index'],
         ['POST', '#^/admin/repos/(\d+)$#', 'ofx_admin_update'],
+        ['POST', '#^/admin/repos/(\d+)/generate-description$#', 'ofx_admin_generate_description'],
         ['GET', '#^/admin/banned$#', 'ofx_admin_banned'],
         ['GET', '#^/admin/export\.(json|xml)$#', 'ofx_admin_export'],
         ['POST', '#^/admin/import$#', 'ofx_admin_import'],
