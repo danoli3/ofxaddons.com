@@ -23,6 +23,7 @@ $flash = ofx_flash_get();
       <nav class="site-nav">
         <a href="/categories">Categories</a>
         <a href="/addons">All Addons</a>
+        <a href="/freshest">Freshest</a>
         <a href="/unsorted">Unsorted</a>
         <a href="/contributors">Contributors</a>
         <?php if ($user): ?>
