@@ -1,10 +1,11 @@
 source "https://rubygems.org"
-ruby "2.4.4"
+ruby "2.7.8"                                                        # bumped from 2.4.4 for the DreamHost test deploy - fixes
+                                                                     # an ffi/libffi ABI incompatibility that broke sassc on
+                                                                     # the box's modern system libffi. Rails 4.2 is the ceiling
+                                                                     # on how far this can go: Ruby 3.0 changed keyword-argument
+                                                                     # handling in ways Rails 4.2 doesn't tolerate.
 
 gem "rails", "~>4.2.10"
-gem "bigdecimal", "~>1.3.0"                                         # pin to the version bundled with ruby 2.4.4 -
-                                                                     # unpinned, bundler resolves the newest release,
-                                                                     # which requires ruby >= 2.6
 gem "font-awesome-sass"                                             # font icons
 gem "high_voltage", "~>3.0"                                         # serving static pages (wrapped in the layout)
 gem "lograge", "~>0.4"                                              # denser application logs
@@ -26,6 +27,12 @@ group :assets, :development, :test do
   gem "coffee-rails", "~>4.2.0"                                     # coffeescript asset pipeline integration
   gem "jquery-rails", "~>4.2.0"                                     # jQuery integration for rails
   gem "sassc-rails", "~>2.1"                                        # SASS support for rails
+  gem "ffi", "~>1.16.0"                                             # transitive dep of sassc, via FFI bindings to libsass -
+                                                                     # pinned to the last release line before ffi started
+                                                                     # shipping precompiled linux binaries (which require ruby
+                                                                     # >= 3.0, conflicting with the 2.7.8 pin above); 1.16.x is
+                                                                     # source-only on linux and fixes the libffi 3.4 ABI issue
+                                                                     # that 1.15.5 had
   gem "uglifier", ">= 1.3.0"                                        # javascript compressor
 end
 
@@ -33,10 +40,9 @@ group :bin do
   gem "awesome_print"                                               # pretty print ruby objects
   gem "colorize"                                                    # colorized console output
   gem "httparty", "~>0.14.0"                                        # http connection library
-  gem "nokogiri", "~>1.10.0"                                        # used for scraping readme files
-  gem "loofah", "~>2.19.0"                                          # transitive dep of rails-html-sanitizer - pinned because
-                                                                     # unpinned it resolves to a version that hard-requires
-                                                                     # Nokogiri::HTML4, an API nokogiri 1.10.x doesn't have
+  gem "nokogiri"                                                    # used for scraping readme files - no longer pinned to
+                                                                     # ~>1.10.0 now that ruby is bumped past the ceiling that
+                                                                     # pin (and the matching loofah pin) existed for
 end
 
 group :development, :test do
