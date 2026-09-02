@@ -122,4 +122,56 @@ $(function () {
     var $row = $(this).closest('.admin-row');
     saveRepoType($row, 'Unsorted', [], []);
   });
+
+  // admin table: paginated (same shape as the public addon-grid, but
+  // rows go into a <tbody> instead of a <div>) plus AJAX tab switching
+  // between Unsorted/Incomplete instead of a full page load - the
+  // table used to render every Unsorted+Incomplete repo (thousands of
+  // rows, each with a <select multiple>) in one page, which made the
+  // whole page unresponsive to clicks.
+  var $adminTbody = $('#admin-tbody');
+  if ($adminTbody.length) {
+    var $adminSentinel = $('#admin-sentinel');
+    var $adminLoading = $adminSentinel.next('.grid-loading');
+    var $adminEnd = $adminLoading.next('.grid-end');
+    var adminLoading = false;
+
+    function loadAdminRows(url, replace) {
+      if (adminLoading) return;
+      adminLoading = true;
+      $adminLoading.prop('hidden', false);
+      if (replace) $adminEnd.prop('hidden', true);
+
+      $.ajax({ url: url, method: 'GET' }).done(function (html, status, xhr) {
+        if (replace) $adminTbody.empty();
+        $adminTbody.append(html);
+        var hasMore = xhr.getResponseHeader('X-Has-More') === '1';
+        $adminTbody.attr('data-has-more', hasMore ? '1' : '0');
+        $adminTbody.attr('data-next-url', incrementPage(url));
+        $adminLoading.prop('hidden', true);
+        $adminEnd.prop('hidden', !!hasMore);
+      }).fail(function () {
+        $adminLoading.prop('hidden', true);
+      }).always(function () {
+        adminLoading = false;
+      });
+    }
+
+    var adminObserver = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting && $adminTbody.data('has-more') == 1) {
+        loadAdminRows($adminTbody.data('next-url'), false);
+      }
+    }, { rootMargin: '400px' });
+    adminObserver.observe($adminSentinel[0]);
+
+    $('.admin-tab').on('click', function (e) {
+      e.preventDefault();
+      var url = $(this).attr('href');
+      $('.admin-tab').removeClass('active');
+      $(this).addClass('active');
+      if (window.history && history.pushState) history.pushState(null, '', url);
+      var sep = url.indexOf('?') === -1 ? '?' : '&';
+      loadAdminRows(url + sep + 'page=1', true);
+    });
+  }
 });

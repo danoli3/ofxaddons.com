@@ -2,36 +2,85 @@
 declare(strict_types=1);
 
 const OFX_REPO_TYPES = ['Addon', 'Deleted', 'Empty', 'Incomplete', 'NonAddon', 'Unsorted'];
+const OFX_ADMIN_TYPES = ['Unsorted', 'Incomplete'];
+const OFX_ADMIN_PAGE_SIZE = 25;
 
 function ofx_admin_index(): void
 {
     $admin = ofx_require_admin();
     $pdo = ofx_db();
 
-    $stmt = $pdo->query('
+    $type = $_GET['type'] ?? 'Unsorted';
+    if (!in_array($type, OFX_ADMIN_TYPES, true)) {
+        $type = 'Unsorted';
+    }
+
+    $page = max(1, (int)($_GET['page'] ?? 1));
+    $offset = ($page - 1) * OFX_ADMIN_PAGE_SIZE;
+    $fetch = OFX_ADMIN_PAGE_SIZE + 1;
+
+    $stmt = $pdo->prepare("
         SELECT r.*, u.login AS user_login
         FROM repos r
         LEFT JOIN users u ON u.id = r.user_id
-        WHERE r.type IN ("Unsorted", "Incomplete")
+        WHERE r.type = ?
         ORDER BY r.pushed_at DESC
-    ');
-    $repos = $stmt->fetchAll();
-
-    $repoCategoryIds = [];
-    $catStmt = $pdo->query('SELECT repo_id, category_id FROM categorizations');
-    while ($row = $catStmt->fetch()) {
-        $repoCategoryIds[$row['repo_id']][] = (int)$row['category_id'];
-    }
+        LIMIT {$fetch} OFFSET {$offset}
+    ");
+    $stmt->execute([$type]);
+    [$repos, $hasMore] = ofx_paginate_slice($stmt->fetchAll(), OFX_ADMIN_PAGE_SIZE);
 
     $categories = $pdo->query('SELECT id, name FROM categories ORDER BY LOWER(name) ASC')->fetchAll();
+    $repoCategoryIds = ofx_admin_category_ids_for($pdo, array_column($repos, 'id'));
+
+    if (ofx_is_ajax()) {
+        header('X-Has-More: ' . ($hasMore ? '1' : '0'));
+        foreach ($repos as $repo) {
+            ofx_admin_row_partial($repo, $categories, $repoCategoryIds[$repo['id']] ?? []);
+        }
+        return;
+    }
+
+    $counts = [];
+    foreach (OFX_ADMIN_TYPES as $t) {
+        $countStmt = $pdo->prepare('SELECT COUNT(*) FROM repos WHERE type = ?');
+        $countStmt->execute([$t]);
+        $counts[$t] = (int)$countStmt->fetchColumn();
+    }
 
     ofx_render('admin/index', [
         'repos' => $repos,
         'repoCategoryIds' => $repoCategoryIds,
         'categories' => $categories,
         'admin' => $admin,
+        'type' => $type,
+        'counts' => $counts,
+        'hasMore' => $hasMore,
+        'nextUrl' => ofx_next_page_url(2),
         'title' => 'Admin',
     ]);
+}
+
+/** @return array<int, int[]> repo_id => [category_id, ...] */
+function ofx_admin_category_ids_for(PDO $pdo, array $repoIds): array
+{
+    if (empty($repoIds)) {
+        return [];
+    }
+    $placeholders = implode(',', array_fill(0, count($repoIds), '?'));
+    $stmt = $pdo->prepare("SELECT repo_id, category_id FROM categorizations WHERE repo_id IN ({$placeholders})");
+    $stmt->execute($repoIds);
+
+    $result = [];
+    while ($row = $stmt->fetch()) {
+        $result[$row['repo_id']][] = (int)$row['category_id'];
+    }
+    return $result;
+}
+
+function ofx_admin_row_partial(array $repo, array $categories, array $selectedCategoryIds): void
+{
+    include __DIR__ . '/../views/partials/admin-row.php';
 }
 
 function ofx_admin_update(string $id): void
@@ -218,6 +267,8 @@ function ofx_parse_import_xml(string $contents): array
 
 // Shared by the upload-based import above and by one-off seeding
 // scripts (e.g. bulk-loading categorization scraped from elsewhere).
+// A repo can belong to more than one category - $entry['categories']
+// is always an array and every name in it gets applied.
 function ofx_apply_addon_import(PDO $pdo, array $entries): array
 {
     $updated = 0;

@@ -2,11 +2,14 @@
 /** @var array $repos */
 /** @var array $repoCategoryIds */
 /** @var array $categories */
+/** @var string $type */
+/** @var array $counts */
+/** @var bool $hasMore */
+/** @var string $nextUrl */
 ?>
 <div class="page-head">
   <h1>Admin &mdash; Categorize</h1>
 </div>
-<p class="page-intro"><?= count($repos) ?> repo(s) waiting to be categorized (Unsorted / Incomplete).</p>
 
 <div class="admin-toolbar">
   <div class="admin-toolbar__group">
@@ -22,6 +25,14 @@
   <a class="admin-toolbar__link" href="/admin/banned">Banned addons &rarr;</a>
 </div>
 
+<div class="admin-tabs">
+  <?php foreach (OFX_ADMIN_TYPES as $t): ?>
+    <a href="/admin/repos?type=<?= ofx_h($t) ?>" class="admin-tab <?= $type === $t ? 'active' : '' ?>" data-type="<?= ofx_h($t) ?>">
+      <?= ofx_h($t) ?> <span class="count"><?= $counts[$t] ?></span>
+    </a>
+  <?php endforeach; ?>
+</div>
+
 <table class="admin-table" id="admin-table">
   <thead>
     <tr>
@@ -32,41 +43,14 @@
       <th></th>
     </tr>
   </thead>
-  <tbody>
+  <tbody id="admin-tbody" data-has-more="<?= $hasMore ? '1' : '0' ?>" data-next-url="<?= ofx_h($nextUrl) ?>">
     <?php foreach ($repos as $repo): ?>
-      <tr class="admin-row" data-repo-id="<?= (int)$repo['id'] ?>">
-        <td>
-          <a href="https://github.com/<?= ofx_h($repo['full_name']) ?>" target="_blank" rel="noopener">
-            <?= ofx_h($repo['name']) ?>
-          </a>
-          <div class="admin-row__owner"><?= ofx_h($repo['user_login'] ?? '') ?></div>
-        </td>
-        <td class="admin-row__desc"><?= ofx_h($repo['description'] ?: '') ?></td>
-        <td>
-          <select class="admin-row__type">
-            <?php foreach (OFX_REPO_TYPES as $type): ?>
-              <option value="<?= ofx_h($type) ?>" <?= $repo['type'] === $type ? 'selected' : '' ?>>
-                <?= ofx_h($type) ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
-        </td>
-        <td>
-          <select class="admin-row__categories" multiple size="4">
-            <?php foreach ($categories as $category): ?>
-              <?php $selected = in_array((int)$category['id'], $repoCategoryIds[$repo['id']] ?? [], true); ?>
-              <option value="<?= (int)$category['id'] ?>" <?= $selected ? 'selected' : '' ?>>
-                <?= ofx_h($category['name']) ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
-        </td>
-        <td class="admin-row__actions">
-          <button type="button" class="admin-row__save">Save</button>
-          <button type="button" class="admin-row__ban" title="Not really an openFrameworks addon">Ban</button>
-          <span class="admin-row__status"></span>
-        </td>
-      </tr>
+      <?php ofx_admin_row_partial($repo, $categories, $repoCategoryIds[$repo['id']] ?? []); ?>
     <?php endforeach; ?>
   </tbody>
 </table>
+<div class="grid-sentinel" id="admin-sentinel"></div>
+<div class="grid-loading" hidden>
+  <span class="spinner"></span> Loading more&hellip;
+</div>
+<p class="grid-end" hidden>You&rsquo;ve reached the end.</p>
