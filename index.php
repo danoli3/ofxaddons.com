@@ -13,6 +13,7 @@ require_once __DIR__ . '/app/controllers/categories.php';
 require_once __DIR__ . '/app/controllers/addons.php';
 require_once __DIR__ . '/app/controllers/unsorted.php';
 require_once __DIR__ . '/app/controllers/contributors.php';
+require_once __DIR__ . '/app/controllers/pages.php';
 require_once __DIR__ . '/app/controllers/session.php';
 require_once __DIR__ . '/app/controllers/admin.php';
 require_once __DIR__ . '/app/routes.php';

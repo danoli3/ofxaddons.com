@@ -42,6 +42,15 @@ function ofx_avatar_url(?string $url): string
     return $url ?: '/app/assets/img/default-gravatar.png';
 }
 
+// Addons can ship a 270x70 ofxaddons_thumbnail.png in their repo root
+// (see /pages/howto) - has_thumbnail is set by the crawler when it
+// finds one. /raw/HEAD/ resolves to whatever the default branch is
+// (main, master, ...) without us needing to store it.
+function ofx_thumbnail_url(string $fullName): string
+{
+    return 'https://github.com/' . $fullName . '/raw/HEAD/ofxaddons_thumbnail.png';
+}
+
 // Appends ?v=<mtime> so a deploy automatically busts the 30-day cache
 // Apache puts on static assets, instead of visitors running whatever
 // JS/CSS their browser cached from before the last update.

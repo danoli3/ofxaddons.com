@@ -46,7 +46,8 @@ $flash = ofx_flash_get();
   <footer class="site-footer">
     <div class="wrap">
       <p>ofxAddons &mdash; the central place to discover
-        <a href="https://openframeworks.cc" target="_blank" rel="noopener">openFrameworks</a> addons.</p>
+        <a href="https://openframeworks.cc" target="_blank" rel="noopener">openFrameworks</a> addons.
+        <a href="/pages/howto">How To</a></p>
     </div>
   </footer>
 

@@ -3,6 +3,10 @@
 $categories = !empty($addon['categories']) ? explode('||', $addon['categories']) : [];
 ?>
 <article class="addon-card" data-name="<?= ofx_h(strtolower($addon['name'] ?? '')) ?>" data-desc="<?= ofx_h(strtolower($addon['description'] ?? '')) ?>">
+  <?php if (!empty($addon['has_thumbnail']) && !empty($addon['full_name'])): ?>
+    <img class="addon-card__thumb" src="<?= ofx_h(ofx_thumbnail_url($addon['full_name'])) ?>" alt="" loading="lazy"
+         onerror="this.remove()">
+  <?php endif; ?>
   <div class="addon-card__head">
     <img class="addon-card__avatar" src="<?= ofx_h(ofx_avatar_url($addon['user_avatar_url'] ?? null)) ?>" alt="" loading="lazy">
     <div class="addon-card__title">
