@@ -67,7 +67,10 @@ ActiveRecord::Schema.define(version: 20151012054750) do
     t.integer  "forks_count",                              default: 0
   end
 
-  add_index "repos", ["full_name"], name: "index_repos_full_name", using: :btree
+  # length: 191 because MySQL can't index a TEXT column without an explicit
+  # key length (unlike Postgres, which indexes it directly) - full_name is
+  # always "owner/repo", well under that
+  add_index "repos", ["full_name"], name: "index_repos_full_name", using: :btree, length: 191
 
   create_table "users", force: :cascade do |t|
     t.string   "provider",   limit: 255,                 null: false
